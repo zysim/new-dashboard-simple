@@ -1,0 +1,80 @@
+<template>
+
+  <div>
+    <div class="row">
+      <div class="col-md-12">
+        <h2>Compass🌊</h2>
+        <compass-table :compasses="compasses"></compass-table>
+      </div>
+    </div>
+    <div class="row">
+      <div class="p-3 mx-auto" v-for="(c, index) of compasses" :key="index">
+        <compass-hand :compass="c"></compass-hand>
+      </div>
+    </div>
+  </div>
+
+</template>
+
+<script lang="ts">
+interface Compass {
+  name: string,
+  bearing: number
+};
+
+class CompassConstructor {
+  readonly name: string;
+  readonly bearing: number;
+  constructor(name: string, bearing: number) {
+    this.name = name;
+    this.bearing = bearing;
+  }
+}
+
+import CompassHand from './CompassHand.vue';
+import CompassTable from './CompassTable.vue';
+
+const testCompasses: Compass[] = [
+  {
+    name: 'goal_hand',
+    bearing: 0
+  },
+  {
+    name: 'heading_hand',
+    bearing: 0
+  },
+  {
+    name: 'waypoint_hand',
+    bearing: 0
+  },
+  {
+    name: 'wind_hand',
+    bearing: 0
+  }
+];
+
+export default {
+  prop: {
+    compasses: {
+      type: Array,
+      validator: (cs: Compass[]) => cs.filter(c => !(c instanceof CompassConstructor)).length === 0,
+      required: true,
+      default: testCompasses
+    }
+  },
+  data() {
+    return {
+      compasses: testCompasses
+    }
+  },
+  components: {
+    CompassHand,
+    CompassTable
+  }
+}
+</script>
+
+<style lang="scss">
+@import "../../node_modules/bootstrap/scss/bootstrap.scss";
+
+</style>
