@@ -8,9 +8,10 @@
       </div>
     </div>
     <div class="row">
-      <div class="p-3 mx-auto" v-for="(c, index) of compasses" :key="index">
+      <compass-hands :compasses="compasses"></compass-hands>
+      <!-- <div class="p-3 mx-auto" v-for="(c, index) of compasses" :key="index">
         <compass-hand :compass="c"></compass-hand>
-      </div>
+      </div> -->
     </div>
   </div>
 
@@ -31,7 +32,7 @@ class CompassConstructor {
   }
 }
 
-import CompassHand from './CompassHand.vue';
+import CompassHands from './CompassHands.vue';
 import CompassTable from './CompassTable.vue';
 
 const testCompasses: Compass[] = [
@@ -68,7 +69,7 @@ export default {
     }
   },
   components: {
-    CompassHand,
+    CompassHands,
     CompassTable
   }
 }

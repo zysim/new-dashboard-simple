@@ -62,7 +62,7 @@ const testTopics: Topic[] = [
 
 let topicId = 0;
 
-const rosTopics = Vue.component('ros-topics', {
+export default Vue.component('ros-topics', {
   props: {
     topics: {
       type: Array,
@@ -133,8 +133,6 @@ const rosTopics = Vue.component('ros-topics', {
     }
   }
 });
-
-export default rosTopics;
 </script>
 
 <style>

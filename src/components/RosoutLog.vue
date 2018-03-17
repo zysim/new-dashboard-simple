@@ -16,14 +16,14 @@
 <script>
 import RosoutTable from './RosoutTable.vue';
 
-export default {
-  prop: {
+export default Vue.component('rosout-log', {
+  data() {
 
   },
   components: {
     RosoutTable
   }
-}
+});
 </script>
 
 <style lang="scss">

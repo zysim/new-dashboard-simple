@@ -25,7 +25,7 @@ class MessageConstructor {
 
 import Vue from 'vue';
 
-const rosoutTable = Vue.component('rosout-table', {
+export default Vue.component('rosout-table', {
   props: {
     displayLevel: {
       type: Number,
@@ -45,7 +45,7 @@ const rosoutTable = Vue.component('rosout-table', {
   computed: {
     getMessages(): Message[] {
       // Check if message contained in 'new-message' prop is a new message
-      if (this.newMessage !== this.recentMessages[this.recentMessages.length - 1]) {
+      if (this.newMessage !== this.recentMessages[this.recentMessages.length - 1].msg) {
         this.appendMsg(this.newMessage);
       }
       return this.recentMessages
@@ -79,8 +79,6 @@ const rosoutTable = Vue.component('rosout-table', {
     }
   }
 });
-
-export default rosoutTable;
 </script>
 
 <style>
