@@ -7,19 +7,33 @@ CYAN="\e[96m"
 GREEN="\e[92m"
 
 
-# Compile project if it hasn't been yet
-if [[ ! -d "dist" ]]; then
-  echo -e "$CYAN" . "Building project..." . "$CLEAR"
-  npm run build
-  echo -e "$GREEN" . "Build complete!" . "$CYAN" . " Now sending files to out/ ..." . "$CLEAR"
-fi
+# Compile project
+echo -e "$CYAN""Building project...""$CLEAR"
+npm run build
+echo -e "$GREEN""Build complete!""$CYAN"" Now sending files to out/ ...""$CLEAR"
 
 # Create the out folder if it isn't there already
 if [[ ! -d "out" ]]; then
   mkdir "out"
 fi
 
-# Copy dist/public.js and index.html into out/
-cp dist/* index.html out
+# Overwrite out/ with dist/
+cp -TRv dist/ out/dist
 
-echo -e "$GREEN" . "Prep work all done! Copy-paste the out folder to the Pi" . "$CLEAR"
+# index.html
+cat >out/index.html <<EOL
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>new-dashboard-simple</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="dist/build.js"></script>
+  </body>
+</html>
+EOL
+
+
+echo -e "$GREEN""Prep work all done! Copy-paste the out folder to the Pi""$CLEAR"
