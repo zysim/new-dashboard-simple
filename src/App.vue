@@ -19,6 +19,7 @@
     <div class="row">
       <div class="col-md-12">
         <!-- <rosout-log @togglePause></rosout-log> -->
+        <rosout-log></rosout-log>
       </div>
     </div>
   </div>
@@ -29,6 +30,7 @@
   import ConnectionOverlays from './components/ConnectionOverlays.vue';
   import MagicCompass from './components/MagicCompass.vue';
   import RosTopics from './components/RosTopics.vue';
+  import RosoutLog from './components/RosoutLog.vue';
 
   const testTopics = [
   {
@@ -55,16 +57,16 @@
     components: {
       ConnectionOverlays,
       MagicCompass,
-      RosTopics
+      RosTopics,
+      RosoutLog
     }
   }
 
 </script>
 
 <style lang="scss" scoped>
-  @import "../node_modules/bootstrap/scss/bootstrap.scss";
   #app {
-    font-family: 'Avenir', Helvetica, Arial, sans-serif;
+    font-family: 'Avenir', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-align: center;

@@ -9,24 +9,33 @@
 
 <script lang="ts">
 import Vue from 'vue';
-// import goalHand from '../assets/goal_hand.svg';
-// import headingHand from '../assets/heading_hand.svg';
-// import waypointHand from '../assets/waypoint_hand.svg';
-// import windHand from '../assets/wind_hand.svg';
+
+interface Compass {
+  readonly name: string,
+  readonly bearing: number
+};
 
 export default Vue.component('compass-hand', {
   props: {
     compass: {
-      type: Object,
-      default: {
-        name: 'Test',
-        bearing: 30
+      type: Object as () => Compass,
+      default(): Compass {
+        return {
+          name: 'Test',
+          bearing: 180
+        };
       }
     }
   },
   computed: {
     source(): string {
+      console.log(this.compass.name);
       return `../assets/${this.compass.name}.svg`;
+    },
+    spinEm(): {transform: string} {
+      return Object.assign(Object.create(null), {
+        transform: `rotate(${this.compass.bearing}deg)`
+      });
     }
   }
 });
@@ -67,11 +76,11 @@ export default Vue.component('compass-hand', {
 //     altName(): string {
 //       return `Why isn't ${this.compass.name} loaded`;
 //     },
-//     spinEm(): {transform: string} {
-//       return Object.assign(Object.create(null), {
-//         transform: `rotate(${this.compass.bearing}deg)`
-//       });
-//     }
+    // spinEm(): {transform: string} {
+    //   return Object.assign(Object.create(null), {
+    //     transform: `rotate(${this.compass.bearing}deg)`
+    //   });
+    // }
 //   }
 // });
 <!-- </script> -->

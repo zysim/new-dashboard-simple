@@ -19,6 +19,9 @@
 </template>
 
 <script lang="ts">
+import Vue from 'vue';
+import spaceIt from '../utilities/spaceIt';
+
 interface Topic {
   id: number,
   name: string,
@@ -31,21 +34,6 @@ interface Message {
   topic: string,
   value: number | string
 };
-
-class TopicConstructor implements Topic {
-  readonly id: number;
-  readonly name: string;
-  readonly value: string | number;
-
-  constructor(id: number, name: string, value: string | number) {
-    this.id = id;
-    this.name = name;
-    this.value = value;
-  }
-}
-
-import Vue from 'vue';
-import spaceIt from '../utilities/spaceIt';
 
 const testTopics: Topic[] = [
   {
@@ -65,18 +53,16 @@ let topicId = 0;
 export default Vue.component('ros-topics', {
   props: {
     topics: {
-      type: Array,
-      validator: (ts: Topic[]) => ts.filter(t => !(t instanceof TopicConstructor)).length === 0,
+      type: Array as () => Topic[],
       required: true,
       default(): Topic[] {
         return testTopics;
       }
     }
   },
-  data(): {headers: string[], topics: Topic[]} {
+  data() {
     return {
-      headers: ['Topic', 'Value'],
-      topics: this.topics as Topic[],
+      headers: ['Topic', 'Value']
     }
   },
   computed: {
@@ -86,7 +72,7 @@ export default Vue.component('ros-topics', {
      * and not run past the width of its column.
      */
     sortedTopics(): Topic[] {
-      return this.topics.sort((a: Topic, b: Topic) => {
+      return this.$props.topics.sort((a: Topic, b: Topic) => {
         return (a.name.localeCompare(b.name) > 0) ? 1 :
           (a.name.localeCompare(b.name) === 0) ? 0 :
           -1
@@ -119,12 +105,13 @@ export default Vue.component('ros-topics', {
      */
     update(msg: Message) {
       const topicName: string = msg.topic;
-      const topic = this.topics.find((t: Topic) => t.name === topicName);
+      const topics = this.$props.topics;
+      const topic = topics.find((t: Topic) => t.name === topicName);
       if (topic) {
         topic.value = this.formatValue(msg);
       } else {
         // Add new row to table
-        this.topics.push({
+        this.$props.topics.push({
           id: topicId++,
           name: topicName,
           value: this.formatValue(msg)

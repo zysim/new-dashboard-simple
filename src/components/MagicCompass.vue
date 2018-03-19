@@ -19,18 +19,9 @@
 
 <script lang="ts">
 interface Compass {
-  name: string,
-  bearing: number
+  readonly name: string,
+  readonly bearing: number
 };
-
-class CompassConstructor {
-  readonly name: string;
-  readonly bearing: number;
-  constructor(name: string, bearing: number) {
-    this.name = name;
-    this.bearing = bearing;
-  }
-}
 
 import CompassHands from './CompassHands.vue';
 import CompassTable from './CompassTable.vue';
@@ -57,8 +48,8 @@ const testCompasses: Compass[] = [
 export default {
   prop: {
     compasses: {
-      type: Array,
-      validator: (cs: Compass[]) => cs.filter(c => !(c instanceof CompassConstructor)).length === 0,
+      type: Array as () => Compass[],
+      validator: (cs: Compass[]) => cs.filter(c => !(c instanceof (Object as () => Compass))).length === 0,
       required: true,
       default: testCompasses
     }
