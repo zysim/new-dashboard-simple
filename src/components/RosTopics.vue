@@ -20,14 +20,24 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import spaceIt from '../utilities/spaceIt';
+import lineBreakIt from '../utilities/lineBreakIt';
 
+/**
+ * A ROS topic interface.
+ * @prop id    Topic ID
+ * @prop name  Topic title
+ * @prop value Topic message
+ */
 interface Topic {
   id: number,
   name: string,
   value: string | number
 };
 
+/**
+ * A ROS message interface
+ *
+*/
 interface Message {
   latitude?: number,
   longitude?: number,
@@ -78,7 +88,7 @@ export default Vue.component('ros-topics', {
           -1
       }).map((topic: Topic) => {
         // Adding zero-width space after every underscore to aid line-breaking
-        topic.name = spaceIt(topic.name, '_'); // Could also add <wbr>
+        topic.name = lineBreakIt(topic.name, '_'); // Could also add <wbr>
         return topic;
       });
     }
