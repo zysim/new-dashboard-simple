@@ -1,9 +1,9 @@
 <template>
 
-  <div style="height: 300px; overflow: scroll;">
+  <div id="rosout-table">
     <ul v-if="recentMessages.length">
-      <li v-for="(m, index) of getMessages" class="new-message" :class="logLevel(m)" :key="index">
-        <span>{{ m.level }}</span>
+      <li v-for="(m, index) of getMessages" :class="getLogClass(m.level)" :key="index">
+        {{ m.msg }}
       </li>
     </ul>
     <p v-else class="no-messages">No messages to display just yet.</p>
@@ -13,6 +13,7 @@
 
 <script lang="ts">
 import Vue, { PropOptions } from 'vue';
+import Constants from '../utilities/constants';
 
 interface Message {
   readonly level: number,
@@ -47,11 +48,15 @@ export default Vue.component('rosout-table', {
   },
   data() {
     return {
-      recentMessages: initMessages.slice(0), // This workaround works I guess
+      recentMessages: initMessages,
       recentMessagesMax: 1000, // Maximum number of messages to store in memory
     }
   },
   computed: {
+    /**
+     * Gets the messages, filtered by their level, to be displayed to the user
+     * @returns The messages filtered by `displayLevel`
+     */
     getMessages(): Message[] {
       // Debugging only; clear all messages if the incoming message says "clear"
       if (D && this.newMessage.level === -1) {
@@ -66,18 +71,20 @@ export default Vue.component('rosout-table', {
     }
   },
   methods: {
-    logLevel(m: Message) {
-      // Apply the appropriate colour to the log message
-      return {
-        debug: 1 & m.level,
-        info: 2 & m.level,
-        warn: 4 & m.level,
-        error: 8 & m.level,
-        fatal: 16 & m.level,
-      }
+    /** Gets the class name for this log message.
+     * @param {number} level The log level for this message. Will be specified by
+     *                       the Message object
+     * @return {string} The class name corresponding to the level
+     */
+    getLogClass(level: number): string {
+      return Constants.LOG_LEVELS[Math.log2(level)].toLowerCase();
     },
+    /**
+     * Appends the new message `m` to the message reservoir.
+     * @param {Message} m The Message object to add to the warehouse
+     */
     appendMsg(m: Message): void {
-      // Trim off the excess fats, plus an extra layer as we're about to add a
+      // Trim off the excess fats + an extra layer as we're about to add a
       // fresh new piece
       if (this.recentMessages.length > this.recentMessagesMax) {
         const discard = this.recentMessages.length - this.recentMessagesMax;
@@ -94,9 +101,39 @@ export default Vue.component('rosout-table', {
 });
 </script>
 
-<style>
-.no-messages {
-  background: rgba(0, 0, 0, 0.7);
-  list-style-type: none;
+<style lang="scss" scoped>
+@import "../scss/rosout.scss";
+
+#rosout-table {
+  height: 500px;
+  overflow-y: scroll;
+  border-radius: 0px 5px 5px 5px;
+  ul{
+    padding: 0px;
+    li {
+      color: white;
+      // text-align: left;
+      padding: 1em 0.5em;
+      list-style-type: none;
+      &.debug {
+          background: $debug;
+        }
+        &.info {
+          background: $info;
+        }
+        &.warn {
+          background: $warn;
+        }
+        &.error {
+          background: $error;
+        }
+        &.fatal {
+          background: $fatal;
+      }
+    }
+  }
+  .no-messages {
+    background: rgba(0, 0, 0, 0.7);
+  }
 }
 </style>

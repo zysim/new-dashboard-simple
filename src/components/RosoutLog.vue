@@ -1,16 +1,16 @@
 <template>
 
-  <div>
+  <div id="rosout-log">
     <h2>/rosout🤖</h2>
     <!-- <button class="btn btn-info" @click="togglePause">{{pauseLoggingText}}</button> -->
     <button v-if="D" @click="sendMessage()">DEBUG: Send a message</button>
     <button v-if="D" @click="clearMessages()">DEBUG: Clear all messages</button>
-    <ul class="nav nav-tabs" id="rosout-log-level-labels">
+    <ul class="nav nav-tabs" id="nav-labels">
       <li class="nav-item" v-for="(l, index) of levels" :key="index" :id="`rosout-level-${l.toLowerCase()}`" @click.prevent="activeLevel = (1 << index)">
-        <a class="nav-link" :class="levelClass(1 << index)" href="/">{{ l }}</a>
+        <a class="nav-link" :class="`${l.toLowerCase()}`" href="/">{{ l }}</a>
       </li>
     </ul>
-    <rosout-table id="rosout-display" :display-level="activeLevel" :new-message="newMessage"></rosout-table>
+    <rosout-table :display-level="activeLevel" :new-message="newMessage"></rosout-table>
   </div>
 
 </template>
@@ -18,6 +18,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import RosoutTable from './RosoutTable.vue';
+import Constants from '../utilities/constants';
 
 const D = true;
 
@@ -33,7 +34,7 @@ export default Vue.component('rosout-log', {
       pauseLoggingText: 'Pause output',
       activeLevel: 4,
       newMessage: {level: 1, msg: 'Test message'},
-      levels: ['Debug', 'Info', 'Warn', 'Error', 'Fatal']
+      levels: Constants.LOG_LEVELS
     };
   },
   methods: {
@@ -50,15 +51,6 @@ export default Vue.component('rosout-log', {
         level: -1,
         msg: 'clear'
       };
-    },
-    levelClass(level: Number) {
-      return {
-        'bg-primary'  : level === 1, // Debug
-        'bg-success'  : level === 2, // Info
-        'bg-warning'  : level === 4, // Warn
-        'bg-danger'   : level === 8, // Error
-        'bg-secondary': level === 16 // Fatal
-      };
     }
   },
   components: {
@@ -67,10 +59,31 @@ export default Vue.component('rosout-log', {
 });
 </script>
 
-<style lang="scss">
-#rosout-log-level-labels {
-  a {
-    color: white;
+<style lang="scss" scoped>
+@import "../scss/rosout.scss";
+
+:root {
+  #nav-labels {
+    .nav-item {
+      .nav-link {
+        color: white;
+        &.debug {
+          background: $debug;
+        }
+        &.info {
+          background: $info;
+        }
+        &.warn {
+          background: $warn;
+        }
+        &.error {
+          background: $error;
+        }
+        &.fatal {
+          background: $fatal;
+        }
+      }
+    }
   }
 }
 </style>
