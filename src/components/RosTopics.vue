@@ -10,7 +10,7 @@
       <tbody>
         <tr v-for="t in sortedTopics" :key="t.id">
           <th scope="row">{{t.name}}</th>
-          <td class="text-right">{{t.value}}</td>
+          <td>{{t.value}}</td>
         </tr>
       </tbody>
     </table>
@@ -132,5 +132,10 @@ export default Vue.component('ros-topics', {
 });
 </script>
 
-<style>
+<style lang="scss" scoped>
+table#topics-table {
+  th {
+    width: 50%;
+  }
+}
 </style>

@@ -31,6 +31,11 @@ export default Vue.component('compass-table', {
     }
   },
   computed: {
+    /**
+     * Changes each compasses' name and bearing to be more readable. I.e. the names
+     * are capitalised, and the bearing is rounded off to 4 decimal places
+     * @returns {Compass[]} The same compasses, made more readable
+     */
     sanitisedCompasses(): Compass[] {
       return this.compasses.map(c => {
         c.name = c.name.replace(/^(\w)(\w+?)_.+$/, function(_: string, first: string, rest: string) {

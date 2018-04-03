@@ -2,7 +2,7 @@
 
   <div id="rosout-table">
     <ul v-if="recentMessages.length">
-      <li v-for="(m, index) of getMessages" :class="getLogClass(m.level)" :key="index">
+      <li v-for="(m, index) of getMessages" class="text-left" :class="getLogClass(m.level)" :key="index">
         {{ m.msg }}
       </li>
     </ul>
@@ -55,12 +55,12 @@ export default Vue.component('rosout-table', {
   computed: {
     /**
      * Gets the messages, filtered by their level, to be displayed to the user
-     * @returns The messages filtered by `displayLevel`
+     * @returns {Message[]} The messages filtered by `displayLevel`
      */
     getMessages(): Message[] {
       // Debugging only; clear all messages if the incoming message says "clear"
       if (D && this.newMessage.level === -1) {
-        this.recentMessages = initMessages.slice(0);
+        this.recentMessages = [];
       }
       // Check if message contained in 'new-message' prop is a new message
       if (!this.recentMessages.length || this.newMessage.msg !== this.recentMessages[this.recentMessages.length - 1].msg) {
@@ -71,7 +71,8 @@ export default Vue.component('rosout-table', {
     }
   },
   methods: {
-    /** Gets the class name for this log message.
+    /**
+     * Gets the class name for this log message.
      * @param {number} level The log level for this message. Will be specified by
      *                       the Message object
      * @return {string} The class name corresponding to the level
@@ -111,25 +112,24 @@ export default Vue.component('rosout-table', {
   ul{
     padding: 0px;
     li {
-      color: white;
-      // text-align: left;
       padding: 1em 0.5em;
+      border-bottom: 1px solid grey;
       list-style-type: none;
       &.debug {
-          background: $debug;
-        }
-        &.info {
-          background: $info;
-        }
-        &.warn {
-          background: $warn;
-        }
-        &.error {
-          background: $error;
-        }
-        &.fatal {
-          background: $fatal;
+        color: $debug;
       }
+      &.info {
+        color: $info;
+      }
+      &.warn {
+        color: $warn;
+      }
+      &.error {
+        color: $error;
+      }
+      &.fatal {
+        color: $fatal;
+    }
     }
   }
   .no-messages {
