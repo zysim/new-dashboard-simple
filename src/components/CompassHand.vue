@@ -1,10 +1,5 @@
 <template>
-  <div class="row">
-    <div class="p-3 mx-auto"><img src="../assets/goal_hand.svg" alt="Why ain't it loading" :style="spinEm"></div>
-    <div class="p-3 mx-auto"><img src="../assets/heading_hand.svg" alt="Why ain't it loading" :style="spinEm"></div>
-    <div class="p-3 mx-auto"><img src="../assets/waypoint_hand.svg" alt="Why ain't it loading" :style="spinEm"></div>
-    <div class="p-3 mx-auto"><img src="../assets/wind_hand.svg" alt="Why ain't it loading" :style="spinEm"></div>
-  </div>
+  <img :src="source" class="compass-hand" :style="spinEm">
 </template>
 
 <script lang="ts">
@@ -22,15 +17,15 @@ export default Vue.component('compass-hand', {
       default(): Compass {
         return {
           name: 'Test',
-          bearing: 180
+          bearing: 0
         };
       }
     }
   },
   computed: {
     source(): string {
-      console.log(this.compass.name);
-      return `../assets/${this.compass.name}.svg`;
+      const name = this.compass.name.toLowerCase() + "_hand";
+      return `../assets/${name}.svg`;
     },
     spinEm(): {transform: string} {
       return Object.assign(Object.create(null), {
@@ -85,9 +80,14 @@ export default Vue.component('compass-hand', {
 // });
 <!-- </script> -->
 
-<style scoped>
+<style lang="scss" scoped>
 .compass-hand {
-  height: 160px;
+  height: 100%;
   transform-origin: bottom center;
+  div.col-md-3 & {
+    width: 25%;
+    padding-top: 25%;
+    padding-bottom: 25%;
+  }
 }
 </style>
