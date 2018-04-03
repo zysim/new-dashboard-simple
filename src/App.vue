@@ -12,13 +12,13 @@
       </div>
 
       <div class="col-md-8">
+        <button class="btn btn-primary" v-if="D" @click="updateCompass()">Update</button>
         <magic-compass :compasses="compasses"></magic-compass>
       </div>
     </div>
 
     <div class="row">
       <div class="col-md-12">
-        <!-- <rosout-log @togglePause></rosout-log> -->
         <rosout-log></rosout-log>
       </div>
     </div>
@@ -27,31 +27,62 @@
 
 
 <script lang="ts">
+interface Compass {
+  name: string,
+  bearing: number
+}
+
   import ConnectionOverlays from './components/ConnectionOverlays.vue';
   import MagicCompass from './components/MagicCompass.vue';
   import RosTopics from './components/RosTopics.vue';
   import RosoutLog from './components/RosoutLog.vue';
+  import Vue from 'vue';
+  import * as ROSLIB from 'roslib';
 
+  // Debug flag, for testing glory
+  const D = true;
+
+  // Dummy topic names to test out word wrapping within table cell
   const testTopics = [
-  {
-    id: 1,
-    name: 'test_string_that\'s_hella_long_test_string_that\'s_hella_long_test_string_that\'s_hella_long_test_string_that\'s_hella_long_',
-    value: 100
-  },
-  {
-    id: 2,
-    name: 'Another_topic_name_but_this_one_ain\'t_as_long',
-    value: 'Henlo'
-  }
-];
+    {
+      id: 1,
+      name: 'Long_test_string_Long_test_string_Long_test_string_Long_test_string_Long_test_string_Long_test_string_Long_test_string_Long_test_string',
+      value: 100
+    },
+    {
+      id: 2,
+      name: 'Another_topic_name_but_this_one_ain\'t_as_long',
+      value: 'Hello'
+    }
+  ];
 
-  export default {
+  let testCompasses: Compass[] = [
+    { name: 'goal_hand', bearing: 0 },
+    { name: 'heading_hand', bearing: 0 },
+    { name: 'waypoint_hand', bearing: 0 },
+    { name: 'wind_hand', bearing: 0 },
+  ];
+
+  export default Vue.component('app', {
     data() {
       return {
-        compasses: [],
+        D: D,
+        compasses: testCompasses,
+        test: testCompasses[0].bearing,
         topics: testTopics,
-        isDisconnected: false,
+        isDisconnected: true,
         isConnecting: false
+      }
+    },
+    methods: {
+      /**
+       * Debug method. Update the compasses with a random bearing at every click.
+       */
+      updateCompass() {
+        if (!this.D) return;
+        this.compasses.map((c: Compass) => {
+          c.bearing = (c.bearing + 50 * Math.random()) % 360;
+        });
       }
     },
     components: {
@@ -60,7 +91,7 @@
       RosTopics,
       RosoutLog
     }
-  }
+  });
 
 </script>
 
