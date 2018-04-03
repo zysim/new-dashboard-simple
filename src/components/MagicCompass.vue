@@ -7,12 +7,12 @@
         <compass-table :compasses="compasses"></compass-table>
       </div>
     </div>
-    <div class="row">
-      <compass-hands :compasses="compasses"></compass-hands>
-      <!-- <div class="p-3 mx-auto" v-for="(c, index) of compasses" :key="index">
-        <compass-hand :compass="c"></compass-hand>
-      </div> -->
-    </div>
+      <div class="row" id="compass-hands">
+        <div class="col-md-6 col-sm-12 container"><img src="../assets/goal_hand.svg" :style="spinEm('Goal')"></div>
+        <div class="col-md-6 col-sm-12 container"><img src="../assets/heading_hand.svg" :style="spinEm('Heading')"></div>
+        <div class="col-md-6 col-sm-12 container"><img src="../assets/waypoint_hand.svg" :style="spinEm('Waypoint')"></div>
+        <div class="col-md-6 col-sm-12 container"><img src="../assets/wind_hand.svg" :style="spinEm('Wind')"></div>
+      </div>
   </div>
 
 </template>
@@ -23,50 +23,47 @@ interface Compass {
   readonly bearing: number
 };
 
-import CompassHands from './CompassHands.vue';
 import CompassTable from './CompassTable.vue';
+import Vue from 'vue';
 
-const testCompasses: Compass[] = [
-  {
-    name: 'goal_hand',
-    bearing: 0
-  },
-  {
-    name: 'heading_hand',
-    bearing: 0
-  },
-  {
-    name: 'waypoint_hand',
-    bearing: 0
-  },
-  {
-    name: 'wind_hand',
-    bearing: 0
-  }
-];
-
-export default {
-  prop: {
+export default Vue.component('magic-compass', {
+  props: {
     compasses: {
       type: Array as () => Compass[],
       validator: (cs: Compass[]) => cs.filter(c => !(c instanceof (Object as () => Compass))).length === 0,
-      required: true,
-      default: testCompasses
-    }
-  },
-  data() {
-    return {
-      compasses: testCompasses
+      required: true
     }
   },
   components: {
-    CompassHands,
     CompassTable
+  },
+  methods: {
+    spinEm(name: string): {transform: string} {
+      const compass = this.compasses.find(c => c.name === name);
+      // If `compass` exists in `this.compasses`, rotate the appropriate SVG
+      if (<Compass>compass) {
+        return Object.assign(Object.create(null), {
+          transform: `rotate(${(<Compass>compass).bearing}deg`
+        });
+      }
+      // Else, dim the compass
+      return Object.assign(Object.create(null), {
+        opacity: '0.5'
+      });
+    }
   }
-}
+}) ;
+
 </script>
 
 <style lang="scss">
 @import "../../node_modules/bootstrap/scss/bootstrap.scss";
-
+#compass-hands {
+  .container {
+    img {
+      height: 50%;
+      transform-origin: bottom center;
+    }
+  }
+}
 </style>
