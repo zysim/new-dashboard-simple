@@ -60,6 +60,8 @@ export default Vue.component('magic-compass', {
 @import "../../node_modules/bootstrap/scss/bootstrap.scss";
 #compass-hands {
   .container {
+    border: 1px solid grey;
+    border-radius: 50%;
     img {
       height: 50%;
       transform-origin: bottom center;

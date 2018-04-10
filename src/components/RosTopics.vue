@@ -36,7 +36,6 @@ interface Topic {
 
 /**
  * A ROS message interface
- *
 */
 interface Message {
   latitude?: number,
@@ -80,6 +79,9 @@ export default Vue.component('ros-topics', {
      * Sorts the topics alphabetically, then adds a zero-width space U+200B
      * after every underscore. This is to ensure long topic names break nicely
      * and not run past the width of its column.
+     *
+     * @return {Topic[]} The ROS topics received from the Pi sorted
+     * alphabetically.
      */
     sortedTopics(): Topic[] {
       return this.$props.topics.sort((a: Topic, b: Topic) => {
@@ -96,7 +98,7 @@ export default Vue.component('ros-topics', {
   methods: {
     /**
      * Formats the value in `msg`. Only used by `update()`.
-     * @param {[key: string]: any} msg The message object to format
+     * @param {Message} msg The message object to format
      */
     formatValue(msg: Message): number|string {
       if (msg.latitude !== undefined && msg.longitude !== undefined) {
@@ -115,7 +117,7 @@ export default Vue.component('ros-topics', {
      */
     update(msg: Message) {
       const topicName: string = msg.topic;
-      const topics = this.$props.topics;
+      const topics = this.topics;
       const topic = topics.find((t: Topic) => t.name === topicName);
       if (topic) {
         topic.value = this.formatValue(msg);
