@@ -14,7 +14,17 @@
 <script lang="ts">
 import Vue, { PropOptions } from 'vue';
 import Constants from '../utilities/constants';
-import {LogMessage as Message} from '../utilities/interfaces';
+
+/**
+ * A ROS log message interface. This is for the messages received under the
+ * '/rosout' topic name.
+ * @prop {number} level The log level; one of {debug|info|warn|error|fatal}
+ * @prop {string} msg   The log message
+ */
+interface Message {
+  readonly level: number;
+  readonly msg: string;
+};
 
 const D = true; // Debug flag for testing
 
