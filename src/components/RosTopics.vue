@@ -5,7 +5,8 @@
 
     <table id="topics-table" class="table table-striped table-bordered">
       <thead class="thead-inverse">
-        <th v-for="h in headers" :key="h">{{h}}</th>
+        <th>Topic</th>
+        <th>Value</th>
       </thead>
       <tbody>
         <tr v-for="t in sortedTopics" :key="t.id">
@@ -21,33 +22,14 @@
 <script lang="ts">
 import Vue from 'vue';
 import lineBreakIt from '../utilities/lineBreakIt';
+import {Topic} from '../utilities/interfaces';
 
-/**
- * A ROS topic interface.
- * @prop id    Topic ID
- * @prop name  Topic title
- * @prop value Topic message
- */
-interface Topic {
-  id: number,
-  name: string,
-  value: string | number
-};
-
-/**
- * A ROS message interface
-*/
-interface Message {
-  latitude?: number,
-  longitude?: number,
-  topic: string,
-  value: number | string
-};
-
+// Test ROS topics. These are mainly used to check line breaking in the table
 const testTopics: Topic[] = [
   {
     id: 1,
-    name: 'test_string_that\'s_hella_long_test_string_that\'s_hella_long_test_string_that\'s_hella_long_test_string_that\'s_hella_long_',
+    name: `test_string_that\'s_hella_long_test_string_that\'s_hella_long_test_string
+          _that\'s_hella_long_test_string_that\'s_hella_long_`,
     value: 100
   },
   {
@@ -69,11 +51,6 @@ export default Vue.component('ros-topics', {
       }
     }
   },
-  data() {
-    return {
-      headers: ['Topic', 'Value']
-    }
-  },
   computed: {
     /**
      * Sorts the topics alphabetically, then adds a zero-width space U+200B
@@ -84,7 +61,7 @@ export default Vue.component('ros-topics', {
      * alphabetically.
      */
     sortedTopics(): Topic[] {
-      return this.$props.topics.sort((a: Topic, b: Topic) => {
+      return this.topics.sort((a: Topic, b: Topic) => {
         return (a.name.localeCompare(b.name) > 0) ? 1 :
           (a.name.localeCompare(b.name) === 0) ? 0 :
           -1
@@ -93,42 +70,6 @@ export default Vue.component('ros-topics', {
         topic.name = lineBreakIt(topic.name, '_'); // Could also add <wbr>
         return topic;
       });
-    }
-  },
-  methods: {
-    /**
-     * Formats the value in `msg`. Only used by `update()`.
-     * @param {Message} msg The message object to format
-     */
-    formatValue(msg: Message): number|string {
-      if (msg.latitude !== undefined && msg.longitude !== undefined) {
-        const latHemi = msg.latitude > 0 ? 'N' : 'S';
-        const lonHemi = msg.longitude > 0 ? 'E' : 'W';
-        return `${Math.abs(msg.latitude)}° ${latHemi} / ${Math.abs(msg.longitude)}°
-       ${lonHemi}}`;
-      } else {
-        return (typeof msg.value === 'number') ?
-          msg.value.toFixed(2) : `${msg.value}`;
-      }
-    },
-    /**
-     * Updates the topics table with `msg`, the new message.
-     * @param {[key: string]: any} msg The new message to update the table with
-     */
-    update(msg: Message) {
-      const topicName: string = msg.topic;
-      const topics = this.topics;
-      const topic = topics.find((t: Topic) => t.name === topicName);
-      if (topic) {
-        topic.value = this.formatValue(msg);
-      } else {
-        // Add new row to table
-        this.$props.topics.push({
-          id: topicId++,
-          name: topicName,
-          value: this.formatValue(msg)
-        });
-      }
     }
   }
 });

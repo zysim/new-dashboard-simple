@@ -14,11 +14,7 @@
 <script lang="ts">
 import Vue, { PropOptions } from 'vue';
 import Constants from '../utilities/constants';
-
-interface Message {
-  readonly level: number,
-  readonly msg: string,
-};
+import {LogMessage as Message} from '../utilities/interfaces';
 
 const D = true; // Debug flag for testing
 

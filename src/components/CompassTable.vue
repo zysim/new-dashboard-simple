@@ -16,12 +16,8 @@
 </template>
 
 <script lang="ts">
-interface Compass {
-  name: string,
-  bearing: number
-};
-
 import Vue from 'vue';
+import {Compass} from '../utilities/interfaces';
 
 export default Vue.component('compass-table', {
   props: {

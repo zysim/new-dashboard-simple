@@ -19,14 +19,13 @@
 import Vue from 'vue';
 import RosoutTable from './RosoutTable.vue';
 import Constants from '../utilities/constants';
+import {LogMessage as Message} from '../utilities/interfaces';
 
 const D = true;
 
-interface Message {
-  readonly level: Number;
-  readonly msg: String;
-}
-
+/**
+ * This component displays the log messages received from the Pi.
+ */
 export default Vue.component('rosout-log', {
   data() {
     return {
@@ -41,9 +40,9 @@ export default Vue.component('rosout-log', {
     /**
      * Applies the appropriate class name for the Rosout labels
      * @param {number} level The label's log level
-     * @return {[key: string]: boolean} The class object for Vue to render
+     * @return {[className: string]: boolean} The class object for Vue to render
      */
-    getClassForLabel(level: number): {[key: string]: boolean} {
+    getClassForLabel(level: number): {[className: string]: boolean} {
       return {
         debug: level === 0,
         info: level === 1,

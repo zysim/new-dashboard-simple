@@ -12,14 +12,14 @@
       </div>
 
       <div class="col-md-8">
-        <button class="btn btn-primary" v-if="D" @click="updateCompass()">Update</button>
+        <button class="btn btn-primary" v-if="D" @click="updateCompassDebug()">Update</button>
         <magic-compass :compasses="compasses"></magic-compass>
       </div>
     </div>
 
     <div class="row">
       <div class="col-md-12">
-        <rosout-log></rosout-log>
+        <rosout-log :messages="logMessages"></rosout-log>
       </div>
     </div>
   </div>
@@ -27,32 +27,7 @@
 
 
 <script lang="ts">
-interface Compass {
-  name: string,
-    bearing: number
-}
-
-/**
- * A ROS topic interface.
- * @prop id    Topic ID
- * @prop name  Topic title
- * @prop value Topic message
- */
-interface Topic {
-  id: number,
-  name: string,
-  value: string | number
-};
-
-/**
- * A ROS message interface
-*/
-interface Message {
-  latitude?: number,
-  longitude?: number,
-  topic: string,
-  value: number | string
-};
+'use strict';
 
 import ConnectionOverlays from './components/ConnectionOverlays.vue';
 import MagicCompass from './components/MagicCompass.vue';
@@ -60,56 +35,77 @@ import RosTopics from './components/RosTopics.vue';
 import RosoutLog from './components/RosoutLog.vue';
 import Vue from 'vue';
 import * as ROSLIB from 'roslib';
+import {Compass, Topic, RosTopicMessage, LogMessage} from './utilities/interfaces';
 
 // Debug flag, for testing glory
 const D = false;
 
-// Dummy topic names to test out word wrapping within table cell
-const testTopics = [{
-    id: 1,
-    name: 'Long_test_string_Long_test_string_Long_test_string_Long_test_string_Long_test_string_Long_test_string_Long_test_string_Long_test_string',
-    value: 100
-  },
-  {
-    id: 2,
-    name: 'Another_topic_name_but_this_one_ain\'t_as_long',
-    value: 'Hello'
-  }
-];
+// Initialiser for the ROS Topics table at the top left corner of the page
+const topics: Topic[] = [];
 
-let testCompasses: Compass[] = [
+// Initialiser for the ROS log messages at the bottom of the page
+const logMessages: LogMessage[] = [];
+
+// Initialiser for the compasses at the top right corner of the page
+let compasses: Compass[] = [
   { name: 'goal_hand', bearing: 0 },
   { name: 'heading_hand', bearing: 0 },
   { name: 'waypoint_hand', bearing: 0 },
   { name: 'wind_hand', bearing: 0 },
 ];
 
+// Dictionary that maps the received compass names to the app's compass names
+// The keys are the compass names as received from the Pi, while the values are the
+// corresponding names for the same compasses in our app
+const compassNameMap: {[receivedName: string]: string} = {
+  '/heading': 'heading_hand',
+  '/goal_heading': 'goal_hand',
+  '/dbg_heading_to_waypoint': 'waypoint_hand',
+  '/wind_direction_average': 'wind_hand'
+};
+
 export default Vue.component('app', {
   data() {
     return {
-      D: D,
-      compasses: testCompasses,
-      test: testCompasses[0].bearing,
-      topics: testTopics,
-      isDisconnected: false,
-      isConnecting: true
+      D: D, // flag for debug mode
+      compasses: compasses, // Compasses for the boat
+      // Dictionary that maps the received compass names to the app's compass names
+      compassNameMap: compassNameMap,
+      isDisconnected: false,  // Flag that checks if we've disconnected from the Pi
+      isConnecting: true, // Flag that checks if we're connecting to the Pi
+      logMessages: logMessages, // ROS log messages from the Pi
+      topics: topics, // ROS topics from the Pi
+      topicId: 0, // Counter for Vue list indexing for the ROS topics table
     }
   },
   methods: {
     /**
      * Debug method. Update the compasses with a random bearing at every click.
      */
-    updateCompass() {
+    updateCompassDebug() {
       if (!this.D) return;
       this.compasses.map((c: Compass) => {
         c.bearing = (c.bearing + 50 * Math.random()) % 360;
       });
     },
     /**
-     * Formats the value in `msg`. Only used by `update()`.
-     * @param {Message} msg The message object to format
+     * Updates the bearing of our compasses in both the table and the SVGs.
+     * The existence of `compass` in our app is checked in `created`.
+     * @param {Compass} compass The compass that was received from the Pi
      */
-    formatValue(msg: Message): number|string {
+    updateCompassBearing(compass: Compass) {
+      // Find our compass that matches what was received
+      const compassToUpdate = this.compasses.find(c => c.name === compass.name);
+      if (compassToUpdate) {
+        // Update the bearing of our compass
+        compassToUpdate.bearing = compass.bearing % 360;
+      }
+    },
+    /**
+     * Formats the value in `msg`. Only used by `updateRosTopics()`.
+     * @param {RosTopicMessage} msg The message object to format
+     */
+    formatValueForRosTopics(msg: RosTopicMessage): string {
       if (msg.latitude !== undefined && msg.longitude !== undefined) {
         const latHemi = msg.latitude > 0 ? 'N' : 'S';
         const lonHemi = msg.longitude > 0 ? 'E' : 'W';
@@ -121,84 +117,70 @@ export default Vue.component('app', {
       }
     },
     /**
-     * Updates the topics table with `msg`, the new message.
-     * @param {[key: string]: any} msg The new message to update the table with
+     * Updates the RosTopics table with `msg`, the new message.
+     * @param {RosTopicMessage} msg The new message to update the table with
      */
-    update(msg: Message) {
+    updateRosTopics(msg: RosTopicMessage) {
       const topicName: string = msg.topic;
       const topics = this.topics;
+      // Check if the topic already exists in our table
       const topic = topics.find((t: Topic) => t.name === topicName);
       if (topic) {
-        topic.value = this.formatValue(msg);
+        // The topic does exist. Update the topic with the message, `msg`
+        topic.value = this.formatValueForRosTopics(msg);
       } else {
-        // Add new row to table
+        // The topic doesn't exist. Add a new row to table
         this.topics.push({
-          id: topicId++,
+          id: this.topicId++,
           name: topicName,
-          value: this.formatValue(msg)
+          value: this.formatValueForRosTopics(msg)
         });
       }
     }
   },
   created() {
-    // const ros = new ROSLIB.Ros({
-    //   url: 'ws://192.168.12.1:8448/updates'
-    // });
-    // ros.on('connection', () => {
-    //   this.isDisconnected = false;
-    //   this.isConnecting = false;
-    // });
-    // ros.on('error', (error) => {
-    //   this.isDisconnected = true;
-    //   this.isConnecting = false;
-    //   console.log('Error connecting to websocket server:', error);
-    // });
-    // ros.on('close', () => {
-    //   this.isDisconnected = true;
-    //   this.isConnecting = false;
-    //   console.log('Connection to Pi closed');
-    // });
-
-    // // Subscribing to a Topic
-    // const heading = new ROSLIB.Topic({
-    //   ros: ros,
-    //   name: '/heading',
-    //   messageType: 'std_msgs/Float32'
-    // });
-
-    // heading.subscribe(function (message) {
-    //   console.log('Received message on', heading.name + ':', message);
-    //   heading.unsubscribe();
-    // });
-
+    // Our initialisation point of our dashboard.
+    // Start the websocket connection
     const app = this;
     const ws = new WebSocket(`ws://192.168.12.1:8448/updates`);
     ws.onopen = function (this: WebSocket, event: Event) {
       app.isDisconnected = false;
       app.isConnecting = false;
-      console.log('Connection made');
     };
-    ws.onmessage = function (event) {
-      const jsonMsg = JSON.parse(event.data);
-      if (jsonMsg.topic === '/rosout') {
-        // Don't touch /rosout for now
-        // app.topics.push(jsonMsg);
+    ws.onmessage = (event) => {
+      // New data received. It'll be in JSON form. Parse the data and process
+      const newData = JSON.parse(event.data);
+      if (newData.topic === '/rosout') {
+        // This data is a ROS log message destined for RosoutLog
+        // Update `logMessages` with the new data
+        this.logMessages.push(<LogMessage>newData);
       } else {
-        topicsTable.update(jsonMsg);
-        // const updateCompassHand = topicHandlers[jsonMsg.topic];
-        // if (updateCompassHand) {
-        //   updateCompassHand(jsonMsg.value);
-        // }
+        // Check if the new data is a bearing update for a compass
+        const potentialCompassBearingUpdate = this.compassNameMap[newData.topic];
+        if (potentialCompassBearingUpdate) {
+          // The new data is a bearing update for a compass. Update our
+          // corresponding compass
+          this.updateCompassBearing({
+            name: newData.topic,
+            bearing: <number>newData.value
+          });
+        } else {
+          // This data is a ROS topic destined for RosTopics
+          // Update `topics` the new data
+          this.updateRosTopics(<RosTopicMessage>newData);
+        }
       }
     };
     ws.onerror = function (error) {
-      // connectionOverlays.isConnecting = false;
-      // connectionOverlays.isDisconnected = true;
+      // The websocket connection has errored. Raise the flags
+      app.isConnecting = false;
+      app.isDisconnected = true;
       console.log('Error connecting', error);
     };
     ws.onclose = function (event) {
-      // connectionOverlays.isConnecting = false;
-      // connectionOverlays.isDisconnected = true;
+      // The websocket connection has closed. Also raise the flags, but differently
+      app.isConnecting = false;
+      app.isDisconnected = true;
       console.log('Connection closed');
     };
 

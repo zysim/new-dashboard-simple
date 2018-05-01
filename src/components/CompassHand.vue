@@ -4,11 +4,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-
-interface Compass {
-  readonly name: string,
-  readonly bearing: number
-};
+import {Compass} from '../utilities/interfaces';
 
 export default Vue.component('compass-hand', {
   props: {

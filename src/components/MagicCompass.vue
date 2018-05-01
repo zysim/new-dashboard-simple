@@ -18,13 +18,9 @@
 </template>
 
 <script lang="ts">
-interface Compass {
-  readonly name: string,
-  readonly bearing: number
-};
-
 import CompassTable from './CompassTable.vue';
 import Vue from 'vue';
+import {Compass} from '../utilities/interfaces';
 
 export default Vue.component('magic-compass', {
   props: {
