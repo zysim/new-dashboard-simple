@@ -2,15 +2,15 @@
 # exportToPi.sh
 # A file to send the compiled files to the PI
 
-CLEAR="\e[39m"
-CYAN="\e[96m"
-GREEN="\e[92m"
+CLEAR="\033[0m"
+CYAN="\033[1;96m"
+GREEN="\033[1;92m"
 
 
 # Compile project
-echo -e "$CYAN""Building project...""$CLEAR"
+echo -e "${CYAN}Building project...${CLEAR}"
 npm run build
-echo -e "$GREEN""Build complete!""$CYAN"" Now sending files to out/ ...""$CLEAR"
+echo -e "${GREEN}Build complete!${CYAN} Now sending files to out/ ...${CLEAR}"
 
 # Create the out folder if it isn't there already
 if [[ ! -d "out" ]]; then
@@ -18,7 +18,7 @@ if [[ ! -d "out" ]]; then
 fi
 
 # Overwrite out/ with dist/
-cp -TRv dist/ out/dist
+cp -rv dist/ out/dist
 
 # index.html
 cat >out/index.html <<EOL
@@ -36,4 +36,4 @@ cat >out/index.html <<EOL
 EOL
 
 
-echo -e "$GREEN""Prep work all done! Copy-paste the out folder to the Pi""$CLEAR"
+echo -e "${GREEN}Prep work all done! Copy-paste the out folder to the Pi${CLEAR}"
