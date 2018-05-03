@@ -19,7 +19,7 @@
 
     <div class="row">
       <div class="col-md-12">
-        <rosout-log :messages="logMessages"></rosout-log>
+        <rosout-log :log-messages="logMessages" @pause="togglePauseLogging" @clear="clearLogMessages"></rosout-log>
       </div>
     </div>
   </div>
@@ -35,32 +35,7 @@ import RosTopics from './components/RosTopics.vue';
 import RosoutLog from './components/RosoutLog.vue';
 import Vue from 'vue';
 import * as ROSLIB from 'roslib';
-import {Compass, Topic} from './utilities/interfaces';
-
-/**
- * A ROS log message interface. This is for the messages received under the
- * '/rosout' topic name.
- * @prop {number} level The log level; one of {debug|info|warn|error|fatal}
- * @prop {string} msg   The log message
- */
-interface LogMessage {
-  readonly level: number;
-  readonly msg: string;
-};
-
-/**
- * A ROS message interface
- * @prop {number?}       latitude  (Optional) The boat's current latitude
- * @prop {number?}       longitude (Optional) The boat's current longitude
- * @prop {string}        topic     The topic's title
- * @prop {number|string} value     The topic's value, or message
- */
-interface RosTopicMessage {
-  latitude?: number,
-  longitude?: number,
-  topic: string,
-  value: number | string
-};
+import {Compass, Topic, LogMessage, RosTopicMessage} from './utilities/interfaces';
 
 // Debug flag, for testing glory
 const D = false;
@@ -92,18 +67,50 @@ const compassNameMap: {[receivedName: string]: string} = {
 export default Vue.component('app', {
   data() {
     return {
+      /////////////////////
+      // DEBUG CONSTANTS //
+      /////////////////////
       D: D, // flag for debug mode
+      D_START: 0, // One-time print JSON data to console
+      ///////////////////////////////////
+      // CONNECTION NOTIFICATION FLAGS //
+      ///////////////////////////////////
+      isDisconnected: false,  // Flag that checks if we've disconnected from the Pi
+      isConnecting: true, // Flag that checks if we're connecting to the Pi
+      /////////////////////////
+      // ROS TOPIC VARIABLES //
+      /////////////////////////
+      topics: topics, // ROS topics from the Pi
+      topicId: 0, // Counter for Vue list indexing for the ROS topics table
+      ///////////////////////
+      // COMPASS VARIABLES //
+      ///////////////////////
       compasses: compasses, // Compasses for the boat
       // Dictionary that maps the received compass names to the app's compass names
       compassNameMap: compassNameMap,
-      isDisconnected: false,  // Flag that checks if we've disconnected from the Pi
-      isConnecting: true, // Flag that checks if we're connecting to the Pi
+      ///////////////////////
+      // ROS LOG VARIABLES //
+      ///////////////////////
+      pauseLogging: false, // Flag to pause receiving new log messages from the Pi
+      maxMessageCount: 1000, // Max number of messages to hold in the reservoir
       logMessages: logMessages, // ROS log messages from the Pi
-      topics: topics, // ROS topics from the Pi
-      topicId: 0, // Counter for Vue list indexing for the ROS topics table
     }
   },
   methods: {
+    /**
+     * Sets the `pauseLogging` flag which determines if we should ignore new log
+     * messages incoming from the Pi.
+     * @param {boolean} toPause The flag emitted from RosoutLog
+     */
+    togglePauseLogging(toPause: boolean) {
+      this.pauseLogging = toPause;
+    },
+    /**
+     * Clears all log messages from the reservoir.
+     */
+    clearLogMessages() {
+      this.logMessages.splice(0, this.logMessages.length);
+    },
     /**
      * Debug method. Update the compasses with a random bearing at every click.
      */
@@ -155,6 +162,11 @@ export default Vue.component('app', {
         topic.value = this.formatValueForRosTopics(msg);
       } else {
         // The topic doesn't exist. Add a new row to table
+        // Before that tho, gonna impose a temp limit of 20 topics to figure out why
+        // the hell all messages are getting pushed to the topics table
+        if (this.topics.length === 20) {
+          this.topics = this.topics.slice(1);
+        }
         this.topics.push({
           id: this.topicId++,
           name: topicName,
@@ -173,25 +185,39 @@ export default Vue.component('app', {
       app.isConnecting = false;
     };
     ws.onmessage = (event) => {
+      if (this.D_START >= 100) {
+        return;
+      }
+      this.D_START++;
       // New data received. It'll be in JSON form. Parse the data and process
       const newData = JSON.parse(event.data);
-      if (newData.topic === '/rosout') {
-        // This data is a ROS log message destined for RosoutLog
+      if (newData.topic === '/rosout' && !this.pauseLogging) {
+        // This data is a ROS log message destined for RosoutLog and we aren't
+        // pausing on receiving incoming log messages
+        if (this.logMessages.length >= this.maxMessageCount) {
+          // A little-overkill check to see if we've exceeded the max number of log
+          // messages to store in memory
+          const discard = this.logMessages.length - this.maxMessageCount;
+          this.logMessages.splice(0, discard + 1);
+        }
         // Update `logMessages` with the new data
         this.logMessages.push(<LogMessage>newData);
       } else {
         // Check if the new data is a bearing update for a compass
         const potentialCompassBearingUpdate = this.compassNameMap[newData.topic];
         if (potentialCompassBearingUpdate) {
+          console.log('This is a bearing update for:', potentialCompassBearingUpdate);
           // The new data is a bearing update for a compass. Update our
           // corresponding compass
           this.updateCompassBearing({
-            name: newData.topic,
+            name: potentialCompassBearingUpdate,
             bearing: <number>newData.value
           });
         } else {
           // This data is a ROS topic destined for RosTopics
           // Update `topics` the new data
+          console.log('This is destined for the topics table');
+          console.log(newData);
           this.updateRosTopics(<RosTopicMessage>newData);
         }
       }

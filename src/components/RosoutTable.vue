@@ -1,12 +1,12 @@
 <template>
 
   <div id="rosout-table">
-    <ul v-if="recentMessages.length">
-      <li v-for="(m, index) of getMessages" class="text-left" :class="getLogClass(m.level)" :key="index">
+    <ul v-if="showMessagesForLevel.length">
+      <li v-for="(m, index) of showMessagesForLevel" class="text-left" :class="getLogClass(m.level)" :key="index">
         {{ m.msg }}
       </li>
     </ul>
-    <p v-else class="no-messages">No messages to display just yet.</p>
+    <p v-else class="no-messages">🈲 No messages to display just yet. 🈲</p>
   </div>
 
 </template>
@@ -14,95 +14,51 @@
 <script lang="ts">
 import Vue, { PropOptions } from 'vue';
 import Constants from '../utilities/constants';
+import { LogMessage } from '../utilities/interfaces';
 
-/**
- * A ROS log message interface. This is for the messages received under the
- * '/rosout' topic name.
- * @prop {number} level The log level; one of {debug|info|warn|error|fatal}
- * @prop {string} msg   The log message
- */
-interface Message {
-  readonly level: number;
-  readonly msg: string;
-};
-
-const D = true; // Debug flag for testing
+const D = false; // Debug flag for testing
 
 // Define a "prototype" array for `recentMessages` in `data()`
 // So I can actually get recentMessages: Message[]
-const initMessages: Message[] = D? [
+const initMessages: LogMessage[] = [
   { level: 1,  msg: "Test with level 1"  },
   { level: 2,  msg: "Test with level 2"  },
   { level: 4,  msg: "Test with level 4"  },
   { level: 8,  msg: "Test with level 8"  },
   { level: 16, msg: "Test with level 16" }
-]
-: [];
+];
 
 export default Vue.component('rosout-table', {
   props: {
     displayLevel: {
       type: Number,
-      default: 1
+      default: 1 // Debug aka 2^0 aka 1 << 0
     },
     // Gotta manually cast this one prop here because of a bug in TS v2.7.
     // Workaround taken from here: https://github.com/vuejs/vue/issues/7640
-    newMessage: {
-      type: Object as () => Message,
-      default: {level: 1, msg: '<default_message>'}
+    messages: {
+      type: Array as () => LogMessage[]
     } as PropOptions<any>
-  },
-  data() {
-    return {
-      recentMessages: initMessages,
-      recentMessagesMax: 1000, // Maximum number of messages to store in memory
-    }
   },
   computed: {
     /**
      * Gets the messages, filtered by their level, to be displayed to the user
      * @returns {Message[]} The messages filtered by `displayLevel`
      */
-    getMessages(): Message[] {
-      // Debugging only; clear all messages if the incoming message says "clear"
-      if (D && this.newMessage.level === -1) {
-        this.recentMessages = [];
-      }
-      // Check if message contained in 'new-message' prop is a new message
-      if (!this.recentMessages.length || this.newMessage.msg !== this.recentMessages[this.recentMessages.length - 1].msg) {
-        this.appendMsg(this.newMessage);
-      }
-      return this.recentMessages
-        .filter((m: Message) => m.level >= this.displayLevel);
+    showMessagesForLevel(): LogMessage[] {
+      return this.messages
+        .filter((m: LogMessage) => m.level >= this.displayLevel);
     }
   },
   methods: {
     /**
      * Gets the class name for this log message.
      * @param {number} level The log level for this message. Will be specified by
-     *                       the Message object
+     *                       the LogMessage object
      * @return {string} The class name corresponding to the level
      */
     getLogClass(level: number): string {
-      return Constants.LOG_LEVELS[Math.log2(level)].toLowerCase();
-    },
-    /**
-     * Appends the new message `m` to the message reservoir.
-     * @param {Message} m The Message object to add to the warehouse
-     */
-    appendMsg(m: Message): void {
-      // Trim off the excess fats + an extra layer as we're about to add a
-      // fresh new piece
-      if (this.recentMessages.length > this.recentMessagesMax) {
-        const discard = this.recentMessages.length - this.recentMessagesMax;
-        this.recentMessages = this.recentMessages.slice(discard + 1);
-      }
-      // Apply the new layer on top
-      this.recentMessages.push(m);
-      // Allow the flavours to rise to the top
-      if (this.$el) {
-        this.$el.scrollTop = this.$el.scrollHeight;
-      }
+      return Constants.LOG_LEVELS_ARRAY[Math.log2(level)].toLowerCase();
     }
   }
 });
@@ -139,7 +95,9 @@ export default Vue.component('rosout-table', {
     }
   }
   .no-messages {
-    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 2em 0em 2em 0em;
   }
 }
 </style>

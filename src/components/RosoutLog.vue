@@ -2,15 +2,15 @@
 
   <div id="rosout-log">
     <h2>/rosout🤖</h2>
-    <!-- <button class="btn btn-info" @click="togglePause">{{pauseLoggingText}}</button> -->
-    <button v-if="D" @click="sendMessage()">DEBUG: Send a message</button>
-    <button v-if="D" @click="clearMessages()">DEBUG: Clear all messages</button>
+    <button v-if="D" @click="DEBUG_sendMessage()">DEBUG: Send a message</button>
+    <button class="btn btn-info" @click="togglePause">{{pauseLoggingText}}</button>
+    <button class="btn btn-default" @click="clearMessages">Clear</button>
     <ul class="nav nav-tabs border-dark" id="nav-labels">
       <li class="nav-item" v-for="(l, index) of levels" :key="index" :id="`rosout-level-${l.toLowerCase()}`" @click.prevent.stop="activeLevel = (1 << index)">
         <a class="nav-link" :class="getClassForLabel(index)" href="/">{{ l }}</a>
       </li>
     </ul>
-    <rosout-table :display-level="activeLevel" :new-message="newMessage"></rosout-table>
+    <rosout-table :display-level="activeLevel" :messages="logMessages"></rosout-table>
   </div>
 
 </template>
@@ -19,31 +19,31 @@
 import Vue from 'vue';
 import RosoutTable from './RosoutTable.vue';
 import Constants from '../utilities/constants';
+import { LogMessage } from '../utilities/interfaces';
 
-/**
- * A ROS log message interface. This is for the messages received under the
- * '/rosout' topic name.
- * @prop {number} level The log level; one of {debug|info|warn|error|fatal}
- * @prop {string} msg   The log message
- */
-interface Message {
-  readonly level: number;
-  readonly msg: string;
-};
-
-const D = true;
+const D = false;
 
 /**
  * This component displays the log messages received from the Pi.
  */
 export default Vue.component('rosout-log', {
+  props: {
+    logMessages: {
+      type: Array as () => LogMessage[],
+      required: true,
+      default: () => ({
+        level: 0,
+        msg: 'Test Message'
+      })
+    }
+  },
   data() {
     return {
       D: D,
+      pauseLoggingFlag: true, // To signal if we should pause receiving messages
       pauseLoggingText: 'Pause output',
       activeLevel: 4,
-      newMessage: {level: 1, msg: 'Test message level 1'},
-      levels: Constants.LOG_LEVELS
+      levels: Constants.LOG_LEVELS_ARRAY,
     };
   },
   methods: {
@@ -65,23 +65,27 @@ export default Vue.component('rosout-log', {
     /**
      * Debug method. Send a dummy message to logs.
      */
-    sendMessage() {
+    DEBUG_sendMessage() {
       if (!D) return;
       const number = 1 << ~~(5 * Math.random());
-      this.newMessage = {
+      this.logMessages.push({
         level: number,
         msg: `Test message with level: ${number}`
-      };
+      });
     },
     /**
-     * Debug method. Clear all messages from logs.
+     * Emits a signal to clear all log messages to App.
      */
     clearMessages() {
-      if (!D) return;
-      this.newMessage = {
-        level: -1,
-        msg: 'clear'
-      };
+      this.$emit('clear');
+    },
+    /**
+     * Toggles receiving new messages from the Pi.
+     */
+    togglePause() {
+      this.$emit('pause', this.pauseLoggingFlag);
+      this.pauseLoggingFlag = !this.pauseLoggingFlag;
+      this.pauseLoggingText = `${this.pauseLoggingFlag? 'Pause' : 'Resume'} Logging`;
     }
   },
   components: {
@@ -116,6 +120,7 @@ export default Vue.component('rosout-log', {
         }
         &.active {
           font-weight: bold;
+          border: 1px solid black;
         }
       }
     }
