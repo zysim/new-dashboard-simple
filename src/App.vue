@@ -54,15 +54,14 @@ let compasses: Compass[] = [
   { name: 'wind_hand', bearing: 0 },
 ];
 
-// Dictionary that maps the received compass names to the app's compass names
-// The keys are the compass names as received from the Pi, while the values are the
-// corresponding names for the same compasses in our app
-const compassNameMap: {[receivedName: string]: string} = {
-  '/heading': 'heading_hand',
-  '/goal_heading': 'goal_hand',
+// Dictionary that maps the compass names from the ROS topics to the compass
+// names in our dashboard
+const compassNameMap: {[key: string]: string} = {
   '/dbg_heading_to_waypoint': 'waypoint_hand',
+  '/goal_heading': 'goal_hand',
+  '/heading': 'heading_hand',
   '/wind_direction_average': 'wind_hand'
-};
+}
 
 export default Vue.component('app', {
   data() {
