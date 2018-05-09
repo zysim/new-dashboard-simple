@@ -6,7 +6,6 @@ CLEAR="\033[0m"
 CYAN="\033[1;96m"
 GREEN="\033[1;92m"
 
-
 # Compile project
 echo -e "${CYAN}Building project...${CLEAR}"
 npm run build

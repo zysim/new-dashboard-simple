@@ -37,16 +37,16 @@ import Vue from 'vue';
 import * as ROSLIB from 'roslib';
 import {Compass, Topic, LogMessage, RosTopicMessage} from './utilities/interfaces';
 
-// Debug flag, for testing glory
+/** Debug flag, for testing glory */
 const D = false;
 
-// Initialiser for the ROS Topics table at the top left corner of the page
+/** Initialiser for the ROS Topics table at the top left corner of the page */
 const topics: Topic[] = [];
 
-// Initialiser for the ROS log messages at the bottom of the page
+/** Initialiser for the ROS log messages at the bottom of the page */
 const logMessages: LogMessage[] = [];
 
-// Initialiser for the compasses at the top right corner of the page
+/** Initialiser for the compasses at the top right corner of the page */
 const compasses: Compass[] = [
   { name: 'goal_hand', bearing: 0 },
   { name: 'heading_hand', bearing: 0 },
@@ -54,9 +54,11 @@ const compasses: Compass[] = [
   { name: 'wind_hand', bearing: 0 },
 ];
 
-// Dictionary that maps the received compass names to the app's compass names
-// The keys are the compass names as received from the Pi, while the values are the
-// corresponding names for the same compasses in our app
+/**
+ * Dictionary that maps the received compass names to the app's compass names
+ * The keys are the compass names as received from the Pi, while the values are the
+ * corresponding names for the same compasses in our app
+ */
 const compassNameMap: {[receivedName: string]: string} = {
   '/heading': 'Heading',
   '/goal_heading': 'Goal',
