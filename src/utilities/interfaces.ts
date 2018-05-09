@@ -4,7 +4,7 @@
  * @prop {number} bearing The compass bearing
  */
 interface Compass {
-  name: string,
+  readonly name: string,
   bearing: number
 }
 
@@ -34,16 +34,19 @@ interface LogMessage {
 /**
  * A ROS message interface. This is for the messages received for the ROS
  * Topic table at the top left.
- * @prop {number?}       latitude  (Optional) The boat's current latitude
- * @prop {number?}       longitude (Optional) The boat's current longitude
- * @prop {string}        topic     The topic's title
- * @prop {number|string} value     The topic's value, or message
+ * @prop {number?}       latitude   (Optional) The boat's current latitude
+ * @prop {number?}       longitude  (Optional) The boat's current longitude
+ * @prop {string}        topic      The topic's title
+ * @prop {number|string} value      The topic's value, or message
+ * @prop {any}           extraProps Any extra properties that may exist, for example
+ *                                  in LatLon messages
  */
 interface RosTopicMessage {
   latitude?: number,
   longitude?: number,
   topic: string,
-  value: number | string
+  value: number | string,
+  [extraProps: string]: any
 };
 
 export {Compass, Topic, LogMessage, RosTopicMessage};

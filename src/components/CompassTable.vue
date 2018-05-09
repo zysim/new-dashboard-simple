@@ -33,10 +33,12 @@ export default Vue.component('compass-table', {
      * @returns {Compass[]} The same compasses, made more readable
      */
     sanitisedCompasses(): Compass[] {
-      return this.compasses.map(c => {
-        c.name = c.name.replace(/^(\w)(\w+?)_.+$/, function(_: string, first: string, rest: string) {
-          return first.toUpperCase() + rest;
-        });
+      return this.compasses.slice().map(c => {
+        c.name = c.name.replace(/^(\w)(\w+?)_.+$/,
+          function(_: string, first: string, rest: string) {
+            return first.toUpperCase() + rest;
+          }
+        );
         c.bearing = Math.round(c.bearing * 1000) / 1000;
         return c;
       });

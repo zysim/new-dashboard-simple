@@ -36,4 +36,6 @@ cat >out/index.html <<EOL
 EOL
 
 
-echo -e "${GREEN}Prep work all done! Copy-paste the out folder to the Pi${CLEAR}"
+echo -e "${GREEN}Prep work all done! Now SCP-ing to the Pi${CLEAR}"
+
+scp -r out/* pi@192.168.12.1:sailing-robot/dashboard/new-src && clear

@@ -4,7 +4,7 @@
     <h2>/rosout🤖</h2>
     <button v-if="D" @click="DEBUG_sendMessage()">DEBUG: Send a message</button>
     <button class="btn btn-info" @click="togglePause">{{pauseLoggingText}}</button>
-    <button class="btn btn-default" @click="clearMessages">Clear</button>
+    <button class="btn btn-default border border-dark" @click="clearMessages">Clear</button>
     <ul class="nav nav-tabs border-dark" id="nav-labels">
       <li class="nav-item" v-for="(l, index) of levels" :key="index" :id="`rosout-level-${l.toLowerCase()}`" @click.prevent.stop="activeLevel = (1 << index)">
         <a class="nav-link" :class="getClassForLabel(index)" href="/">{{ l }}</a>

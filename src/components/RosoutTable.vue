@@ -6,7 +6,7 @@
         {{ m.msg }}
       </li>
     </ul>
-    <p v-else class="no-messages">🈲 No messages to display just yet. 🈲</p>
+    <p v-else class="no-messages">🚫 No messages to display for this level yet. 🚫</p>
   </div>
 
 </template>
@@ -37,7 +37,7 @@ export default Vue.component('rosout-table', {
     // Gotta manually cast this one prop here because of a bug in TS v2.7.
     // Workaround taken from here: https://github.com/vuejs/vue/issues/7640
     messages: {
-      type: Array as () => LogMessage[]
+      type: Array as () => LogMessage[],
     } as PropOptions<any>
   },
   computed: {
@@ -77,11 +77,12 @@ export default Vue.component('rosout-table', {
       padding: 1em 0.5em;
       border-bottom: 1px solid grey;
       list-style-type: none;
+      font-weight: bold;
       &.debug {
         color: $debug;
       }
       &.info {
-        color: $info;
+        color: darken($info, 30%);
       }
       &.warn {
         color: $warn;
@@ -96,7 +97,7 @@ export default Vue.component('rosout-table', {
   }
   .no-messages {
     color: white;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(73, 57, 33, 0.6);
     padding: 2em 0em 2em 0em;
   }
 }

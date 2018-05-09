@@ -39,8 +39,6 @@ const testTopics: Topic[] = [
   }
 ];
 
-let topicId = 0;
-
 export default Vue.component('ros-topics', {
   props: {
     topics: {
@@ -61,7 +59,7 @@ export default Vue.component('ros-topics', {
      * alphabetically.
      */
     sortedTopics(): Topic[] {
-      return this.topics.sort((a: Topic, b: Topic) => {
+      return this.topics.slice().sort((a: Topic, b: Topic) => {
         return (a.name.localeCompare(b.name) > 0) ? 1 :
           (a.name.localeCompare(b.name) === 0) ? 0 :
           -1

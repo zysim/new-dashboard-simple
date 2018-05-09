@@ -47,7 +47,7 @@ const topics: Topic[] = [];
 const logMessages: LogMessage[] = [];
 
 // Initialiser for the compasses at the top right corner of the page
-let compasses: Compass[] = [
+const compasses: Compass[] = [
   { name: 'goal_hand', bearing: 0 },
   { name: 'heading_hand', bearing: 0 },
   { name: 'waypoint_hand', bearing: 0 },
@@ -58,10 +58,10 @@ let compasses: Compass[] = [
 // The keys are the compass names as received from the Pi, while the values are the
 // corresponding names for the same compasses in our app
 const compassNameMap: {[receivedName: string]: string} = {
-  '/heading': 'heading_hand',
-  '/goal_heading': 'goal_hand',
-  '/dbg_heading_to_waypoint': 'waypoint_hand',
-  '/wind_direction_average': 'wind_hand'
+  '/heading': 'Heading',
+  '/goal_heading': 'Goal',
+  '/dbg_heading_to_waypoint': 'Waypoint',
+  '/wind_direction_average': 'Wind'
 };
 
 export default Vue.component('app', {
@@ -139,8 +139,8 @@ export default Vue.component('app', {
      */
     formatValueForRosTopics(msg: RosTopicMessage): string {
       if (msg.latitude !== undefined && msg.longitude !== undefined) {
-        const latHemi = msg.latitude > 0 ? 'N' : 'S';
-        const lonHemi = msg.longitude > 0 ? 'E' : 'W';
+        const latHemi = msg.latitude > 0 ? 'N' : msg.latitude < 0 ? 'S' : '';
+        const lonHemi = msg.longitude > 0 ? 'E' : msg.longitude < 0 ? 'W' : '';
         return `${Math.abs(msg.latitude)}° ${latHemi} / ${Math.abs(msg.longitude)}°
        ${lonHemi}}`;
       } else {
@@ -156,17 +156,16 @@ export default Vue.component('app', {
       const topicName: string = msg.topic;
       const topics = this.topics;
       // Check if the topic already exists in our table
-      const topic = topics.find((t: Topic) => t.name === topicName);
+      const topic = topics.find((t: Topic) => {
+        // We must use localeCompare here as t.name contains non-breaking
+        // whitespaces
+        return t.name.localeCompare(topicName) === 0;
+      });
       if (topic) {
         // The topic does exist. Update the topic with the message, `msg`
         topic.value = this.formatValueForRosTopics(msg);
       } else {
-        // The topic doesn't exist. Add a new row to table
-        // Before that tho, gonna impose a temp limit of 20 topics to figure out why
-        // the hell all messages are getting pushed to the topics table
-        if (this.topics.length === 20) {
-          this.topics = this.topics.slice(1);
-        }
+        // The topic does not exist. Push the new topic to the table
         this.topics.push({
           id: this.topicId++,
           name: topicName,
@@ -185,10 +184,12 @@ export default Vue.component('app', {
       app.isConnecting = false;
     };
     ws.onmessage = (event) => {
-      if (this.D_START >= 100) {
-        return;
+      if (this.D) {
+        if (this.D_START >= 20) {
+          return;
+        }
+        this.D_START++;
       }
-      this.D_START++;
       // New data received. It'll be in JSON form. Parse the data and process
       const newData = JSON.parse(event.data);
       if (newData.topic === '/rosout' && !this.pauseLogging) {
@@ -206,7 +207,6 @@ export default Vue.component('app', {
         // Check if the new data is a bearing update for a compass
         const potentialCompassBearingUpdate = this.compassNameMap[newData.topic];
         if (potentialCompassBearingUpdate) {
-          console.log('This is a bearing update for:', potentialCompassBearingUpdate);
           // The new data is a bearing update for a compass. Update our
           // corresponding compass
           this.updateCompassBearing({
@@ -216,8 +216,6 @@ export default Vue.component('app', {
         } else {
           // This data is a ROS topic destined for RosTopics
           // Update `topics` the new data
-          console.log('This is destined for the topics table');
-          console.log(newData);
           this.updateRosTopics(<RosTopicMessage>newData);
         }
       }

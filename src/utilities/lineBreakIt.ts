@@ -10,7 +10,11 @@
  * @return The string `inputString` with a zero-width space after every `delimiter`
  *         character
  */
-export default function(inputString: string, delimiter: string | RegExp) {
+export default function(inputString: string, delimiter: string | RegExp): string {
+  // Do nothing if we already find a \u200b character in inputString
+  if (inputString.indexOf('\u200b') !== -1) {
+    return inputString;
+  }
   if (typeof delimiter === "string") {
     return inputString.split(delimiter).join(`${delimiter}\u200b`);
   } else if (delimiter instanceof RegExp) {
